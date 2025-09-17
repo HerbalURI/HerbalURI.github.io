@@ -1,0 +1,29 @@
+name: Deploy WebGL to Pages
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Prepare WebGL site
+        run: |
+          mkdir -p ./public
+          cp -r ./webgl/Build ./public/Build
+          cp -r ./webgl/TemplateData ./public/TemplateData || true
+          cp ./webgl/index.html ./public/index.html
+
+      - name: Disable Jekyll
+        run: touch ./public/.nojekyll
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
