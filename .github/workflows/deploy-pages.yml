@@ -1,7 +1,12 @@
-name: Deploy WebGL to Pages
+name: Deploy WebGL to GitHub Pages (user site)
+
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]   # build on pushes to main
+
+permissions:
+  contents: write   # <- required to push
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,19 +16,19 @@ jobs:
         with:
           lfs: true
 
-      - name: Prepare WebGL site
+      - name: Assemble site
         run: |
-          mkdir -p ./public
-          cp -r ./webgl/Build ./public/Build
-          cp -r ./webgl/TemplateData ./public/TemplateData || true
-          cp ./webgl/index.html ./public/index.html
+          mkdir -p public
+          cp -r webgl/Build public/Build
+          if [ -d webgl/TemplateData ]; then cp -r webgl/TemplateData public/TemplateData; fi
+          cp webgl/index.html public/index.html
+          touch public/.nojekyll
 
-      - name: Disable Jekyll
-        run: touch ./public/.nojekyll
-
-      - name: Deploy to gh-pages
+      - name: Deploy to main (root)
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages
+          publish_dir: public
+          publish_branch: main           # user sites must serve from main
+          keep_files: true               # don't delete existing repo files
+          force_orphan: false            # keep history; don't wipe main
